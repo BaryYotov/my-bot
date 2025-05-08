@@ -130,13 +130,11 @@ async def main():
     app["bot"] = bot
     app.on_startup.append(lambda _: on_startup(bot))
     app.on_shutdown.append(lambda _: on_shutdown(bot))
-    app.router.add_post(WEBHOOK_PATH, dp.handle_webhook)  # Исправлено: метод handle_webhook
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", APP_PORT)
-    await site.start()
+    # Используем dp.start_webhook вместо dp.handle_webhook
+    dp.start_webhook(
+        app=app, path=WEBHOOK_PATH, on_startup=on_startup, on_shutdown=on_shutdown, port=APP_PORT
+    )
     print("Webhook сервер запущен")
-
     while True:
         await asyncio.sleep(3600)
 
