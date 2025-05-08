@@ -2,13 +2,19 @@ import logging
 import os
 import asyncio
 from aiogram import Bot, Dispatcher, Router, F
+from aiogram.types import (
+    Message,
+    CallbackQuery,
+    InputFile,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton
+)
+from aiogram.filters import CommandStart
 from aiogram.filters.callback_data import CallbackData
 from aiogram.enums import ContentType
-from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.filters.callback_data import CallbackData
 from aiohttp import web
 
 # === Конфигурация ===
