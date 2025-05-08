@@ -43,12 +43,12 @@ class ReplyToUser(StatesGroup):
 
 # === Кнопка "Ответить" ===
 def reply_keyboard(user_id):
-    return InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
             text="Ответить",
             callback_data=ReplyCallbackFactory(user_id=user_id).pack()
-        )
-    ]])
+        )]
+    ])
 
 # === Приветствие ===
 @router.message(CommandStart())
@@ -130,7 +130,7 @@ async def main():
     app["bot"] = bot
     app.on_startup.append(lambda _: on_startup(bot))
     app.on_shutdown.append(lambda _: on_shutdown(bot))
-    app.router.add_post(WEBHOOK_PATH, dp.webhook_handler(bot))
+    app.router.add_post(WEBHOOK_PATH, dp.handle_webhook)  # Исправлено: метод handle_webhook
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", APP_PORT)
