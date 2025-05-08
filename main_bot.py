@@ -10,7 +10,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.utils.callback_data import CallbackData
+from aiogram.types import CallbackData
 from aiohttp import web
 
 # === Конфигурация ===
