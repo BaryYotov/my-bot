@@ -3,7 +3,7 @@ import os
 import asyncio
 from aiogram import Bot, Dispatcher, Router, F
 from aiogram.filters.callback_data import CallbackData
-from aiogram.enums import ContentType
+from aiogram.enums import ContentType, ParseMode
 from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
@@ -24,10 +24,10 @@ ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 WEBHOOK_HOST = os.getenv("RENDER_EXTERNAL_URL")
 WEBHOOK_PATH = f"/webhook/{TOKEN}"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-APP_PORT = int(os.getenv("PORT", 8080))
+APP_PORT = int(os.getenv("PORT", "10000"))
 
 # === Инициализация ===
-bot = Bot(token=TOKEN)
+bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher(storage=MemoryStorage())
 router = Router()
 dp.include_router(router)
@@ -119,29 +119,33 @@ async def send_reply_to_user(message: Message, state: FSMContext):
     except Exception as e:
         await message.reply(f"❌ Ошибка при отправке: {e}")
 
-# === Webhook-приложение ===
+# === Хуки для запуска и остановки ===
 async def on_startup(bot: Bot):
     await bot.set_webhook(WEBHOOK_URL)
+    logging.info(f"✅ Webhook установлен: {WEBHOOK_URL}")
 
 async def on_shutdown(bot: Bot):
     await bot.delete_webhook()
+    logging.info("🛑 Webhook удалён")
 
+# === Запуск бота через webhook ===
 async def main():
-    app = web.Application()
-    app["bot"] = bot
+    # Хуки
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
 
-    # Правильный способ добавить webhook обработчик
+    # aiohttp-приложение
+    app = web.Application()
     SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
 
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", APP_PORT)
     await site.start()
-    print("Webhook сервер запущен")
+    logging.info(f"🚀 Сервер запущен на порту {APP_PORT}")
 
-    # Ожидание в фоновом режиме
-    while True:
-        await asyncio.sleep(3600)
+    # Запуск фоновой задачи
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
     asyncio.run(main())
