@@ -127,7 +127,6 @@ async def on_shutdown(bot: Bot):
     await bot.delete_webhook()
 
 async def main():
-async def main():
     app = web.Application()
     app["bot"] = bot
 
