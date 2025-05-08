@@ -2,6 +2,12 @@ import logging
 import os
 import asyncio
 from aiogram import Bot, Dispatcher, Router, F
+from aiogram.filters.callback_data import CallbackData
+from aiogram.enums import ContentType
+from aiogram.filters import CommandStart
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import (
     Message,
     CallbackQuery,
@@ -9,12 +15,6 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
-from aiogram.filters import CommandStart
-from aiogram.filters.callback_data import CallbackData
-from aiogram.enums import ContentType
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.memory import MemoryStorage
 from aiohttp import web
 
 # === Конфигурация ===
@@ -43,7 +43,7 @@ class ReplyToUser(StatesGroup):
 
 # === Кнопка "Ответить" ===
 def reply_keyboard(user_id):
-    return InlineKeyboardMarkup(inline_keyboard=[
+    return InlineKeyboardMarkup(inline_keyboard=[ 
         [InlineKeyboardButton(
             text="Ответить",
             callback_data=ReplyCallbackFactory(user_id=user_id).pack()
@@ -130,11 +130,13 @@ async def main():
     app["bot"] = bot
     app.on_startup.append(lambda _: on_startup(bot))
     app.on_shutdown.append(lambda _: on_shutdown(bot))
-    # Используем dp.start_webhook вместо dp.handle_webhook
-    dp.start_webhook(
-        app=app, path=WEBHOOK_PATH, on_startup=on_startup, on_shutdown=on_shutdown, port=APP_PORT
-    )
+    app.router.add_post(WEBHOOK_PATH, dp.webhook_handler)  # Добавьте обработчик webhook
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", APP_PORT)
+    await site.start()
     print("Webhook сервер запущен")
+
     while True:
         await asyncio.sleep(3600)
 
