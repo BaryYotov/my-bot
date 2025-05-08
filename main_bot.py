@@ -16,6 +16,7 @@ from aiogram.types import (
     InlineKeyboardButton
 )
 from aiohttp import web
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler
 
 # === Конфигурация ===
 TOKEN = os.getenv("BOT_TOKEN")
@@ -126,17 +127,20 @@ async def on_shutdown(bot: Bot):
     await bot.delete_webhook()
 
 async def main():
+async def main():
     app = web.Application()
     app["bot"] = bot
-    app.on_startup.append(lambda _: on_startup(bot))
-    app.on_shutdown.append(lambda _: on_shutdown(bot))
-    app.router.add_post(WEBHOOK_PATH, dp.webhook_handler)  # Добавьте обработчик webhook
+
+    # Правильный способ добавить webhook обработчик
+    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
+
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", APP_PORT)
     await site.start()
     print("Webhook сервер запущен")
 
+    # Ожидание в фоновом режиме
     while True:
         await asyncio.sleep(3600)
 
