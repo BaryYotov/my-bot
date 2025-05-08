@@ -2,15 +2,13 @@ import logging
 import os
 import asyncio
 from aiogram import Bot, Dispatcher, Router, F
-from aiogram.types import (
-    Message, CallbackQuery, InputFile, InlineKeyboardMarkup, InlineKeyboardButton
-)
+from aiogram.filters.callback_data import CallbackData
 from aiogram.enums import ContentType
 from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import CallbackData
+from aiogram.filters.callback_data import CallbackData
 from aiohttp import web
 
 # === Конфигурация ===
@@ -39,12 +37,12 @@ class ReplyToUser(StatesGroup):
 
 # === Кнопка "Ответить" ===
 def reply_keyboard(user_id):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(
             text="Ответить",
             callback_data=ReplyCallbackFactory(user_id=user_id).pack()
-        )]
-    ])
+        )
+    ]])
 
 # === Приветствие ===
 @router.message(CommandStart())
